@@ -10,20 +10,20 @@ import os
 load_dotenv()
 
 app = FastAPI()
-client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 class UserChoice(BaseModel):
     response_id: str
     selected_option: str
-
 
 def build_initial_prompt(title: str):
     return f"""
@@ -49,9 +49,11 @@ The reader chose: "{selected_option}"
 
 Continue the story based on this choice. End the new section with 3 new adventure options.
 """
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the Story Generator API!"}
 
-
-@app.get("/generate/first-section")
+@app.post("/generate/first-section")
 async def generate_first_section(title: str = Query(...)):
     prompt = build_initial_prompt(title)
 
